@@ -1,11 +1,10 @@
--- Defusal FPS GUI + Özellikler (Rayfield olmadan)
+-- Defusal FPS GUI (JJSploit uyumlu sürüm - Drawing API ve gelişmiş özellikler çıkarıldı)
 if game.PlaceId == 79393329652220 then
     local Players = game:GetService("Players")
     local RunService = game:GetService("RunService")
     local UserInputService = game:GetService("UserInputService")
     local LP = Players.LocalPlayer
     local PlayerGui = LP:WaitForChild("PlayerGui")
-    local camera = workspace.CurrentCamera
 
     local gui = Instance.new("ScreenGui")
     gui.Name = "LCX_GUI"
@@ -57,66 +56,18 @@ if game.PlaceId == 79393329652220 then
     -- Durumlar
     local espEnabled = false
     local aimbotEnabled = false
-    local aimbotTarget = nil
     local flyEnabled = false
     local bodyVelocity = nil
     local flyConnection = nil
     local speedHack = false
     local infiniteAmmo = false
-    local rainbowHands = false
-    local conns = {}
 
-    -- ESP kutuları (Drawing API)
-    local boxes = {}
-    local function createESPBox(char)
-        local box = Drawing.new("Square")
-        box.Color = Color3.new(1,0,0)
-        box.Thickness = 2
-        box.Filled = false
-        box.Visible = true
-        local rsConn = RunService.RenderStepped:Connect(function()
-            if char and char:FindFirstChild("HumanoidRootPart") then
-                local vec, onscreen = camera:WorldToViewportPoint(char.HumanoidRootPart.Position)
-                if onscreen then
-                    local size = 2000 / vec.Z
-                    box.Size = Vector2.new(size, size)
-                    box.Position = Vector2.new(vec.X - size/2, vec.Y - size/2)
-                    box.Visible = true
-                else
-                    box.Visible = false
-                end
-            else
-                box.Visible = false
-            end
-        end)
-        table.insert(boxes, {box = box, conn = rsConn})
-    end
-
-    local function removeAllBoxes()
-        for _, b in pairs(boxes) do
-            b.box:Remove()
-            b.conn:Disconnect()
-        end
-        boxes = {}
-    end
-
-    createButton(espTab, "ESP Aç/Kapat", function()
-        espEnabled = not espEnabled
-        print("ESP:", espEnabled)
-        if espEnabled then
-            for _, plr in pairs(Players:GetPlayers()) do
-                if plr ~= LP and plr.Character then
-                    createESPBox(plr.Character)
-                end
-            end
-        else
-            removeAllBoxes()
-        end
+    createButton(espTab, "ESP (Yalnızca Gelişmiş Exploit)", function()
+        print("[UYARI] ESP çalışmaz: Drawing API desteklenmiyor (JJSploit)")
     end)
 
-    createButton(aimTab, "Aimbot Aç/Kapat", function()
-        aimbotEnabled = not aimbotEnabled
-        print("Aimbot:", aimbotEnabled)
+    createButton(aimTab, "Aimbot (Desteklenmez)", function()
+        print("[UYARI] Aimbot çalışmaz: Kamera yönü değiştirme desteklenmiyor (JJSploit)")
     end)
 
     createButton(playerTab, "Fly Aç/Kapat", function()
@@ -132,10 +83,10 @@ if game.PlaceId == 79393329652220 then
 
             flyConnection = RunService.Stepped:Connect(function()
                 local move = Vector3.zero
-                if UserInputService:IsKeyDown(Enum.KeyCode.W) then move += camera.CFrame.LookVector end
-                if UserInputService:IsKeyDown(Enum.KeyCode.S) then move -= camera.CFrame.LookVector end
-                if UserInputService:IsKeyDown(Enum.KeyCode.A) then move -= camera.CFrame.RightVector end
-                if UserInputService:IsKeyDown(Enum.KeyCode.D) then move += camera.CFrame.RightVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.W) then move += workspace.CurrentCamera.CFrame.LookVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.S) then move -= workspace.CurrentCamera.CFrame.LookVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.A) then move -= workspace.CurrentCamera.CFrame.RightVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.D) then move += workspace.CurrentCamera.CFrame.RightVector end
                 if UserInputService:IsKeyDown(Enum.KeyCode.Space) then move += Vector3.new(0,1,0) end
                 if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then move -= Vector3.new(0,1,0) end
                 bodyVelocity.Velocity = move.Unit * 50
@@ -155,54 +106,5 @@ if game.PlaceId == 79393329652220 then
         end
     end)
 
-    createButton(rageTab, "Infinite Ammo Aç/Kapat", function()
-        infiniteAmmo = not infiniteAmmo
-        print("Infinite Ammo:", infiniteAmmo)
-        if infiniteAmmo then
-            conns.ammo = RunService.Stepped:Connect(function()
-                local wep = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
-                if wep and wep:FindFirstChild("Ammo") then
-                    wep.Ammo.Value = 999
-                end
-            end)
-        else
-            if conns.ammo then conns.ammo:Disconnect() conns.ammo = nil end
-        end
-    end)
-
-    createButton(skinsTab, "Rainbow Hands Aç/Kapat", function()
-        rainbowHands = not rainbowHands
-        print("Rainbow Hands:", rainbowHands)
-        local colors = {
-            Color3.fromRGB(255, 0, 0), Color3.fromRGB(255, 127, 0), Color3.fromRGB(255, 255, 0),
-            Color3.fromRGB(0, 255, 0), Color3.fromRGB(0, 0, 255), Color3.fromRGB(75, 0, 130),
-            Color3.fromRGB(148, 0, 211)
-        }
-        local index = 1
-        if rainbowHands then
-            conns.hands = RunService.Heartbeat:Connect(function()
-                local arms = workspace.Camera:FindFirstChild("Arms") and workspace.Camera.Arms:FindFirstChild("CSSArms")
-                if arms then
-                    local left = arms:FindFirstChild("Left Arm")
-                    local right = arms:FindFirstChild("Right Arm")
-                    if left and right then
-                        left.Color = colors[index]
-                        right.Color = colors[index]
-                        index = (index % #colors) + 1
-                    end
-                end
-            end)
-        else
-            if conns.hands then conns.hands:Disconnect() conns.hands = nil end
-        end
-    end)
-
-    -- Aimbot logic
-    UserInputService.InputBegan:Connect(function(input, gpe)
-        if gpe then return end
-        if input.UserInputType == Enum.UserInputType.MouseButton2 and aimbotEnabled then
-            local closest, dist = nil, math.huge
-            local mousePos = UserInputService:GetMouseLocation()
-            for _, plr in pairs(Players:GetPlayers()) do
-                if plr ~= LP and plr.Character and plr.Character:FindFirstChild("Head") then
-                    local screenPos, onScreen = camera:WorldToViewportPoint(plr.Chara
+    createButton(rageTab, "Infinite Ammo (Sadece bazı oyunlarda)", function()
+        infiniteA
